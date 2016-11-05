@@ -2,10 +2,25 @@ import os
 
 
 class DeviceFinder:
+
+    """Collects info about connected devices"""
+
     def __init__(self):
         pass
 
     def get_usb_table(self):
+        """Return list of connected devices
+
+        Each line contains:
+        <field> -- <example>
+        device name -- /dev/sdX
+        device label -- MyAwesomeDrive
+        device mount point -- /mnt/usb
+        total drive space in GiB -- 4.65 GiB
+        used drive space
+        free drive space
+
+        """
         usb_set = self.get_device_list_by_path()
         block_device_list = self.get_device_list_by_label()
 
@@ -20,6 +35,13 @@ class DeviceFinder:
         return usb_table
 
     def find_dev_mount_point(self, usb_table):
+        """Adds mount point and disk usage fields for mounted devices
+
+        Keyword arguments:
+        usb_table -- table with connected devices info
+        Return: modified usb_table
+
+        """
         mounts = open("/proc/mounts")
         mount_points = mounts.readlines()
         table = usb_table
@@ -29,11 +51,25 @@ class DeviceFinder:
                 arguments = point.split(" ")
                 if arguments[0] == device[0]:
                     usb_table[i].append(arguments[1])
+                    usb_table[i] = self.get_drive_stat(usb_table[i])
                     break
             i += 1
         return usb_table
 
+    def get_drive_stat(self, table_row):
+        """Add disk usage info(total/used/free) about mounted device"""
+        statvfs = os.statvfs(table_row[2])
+        bytes_in_gigabytes = 1024 ** 3
+        total = statvfs.f_frsize * statvfs.f_blocks / bytes_in_gigabytes
+        # free space for ordinary users (excl. reserved)
+        free = statvfs.f_frsize * statvfs.f_bavail / bytes_in_gigabytes
+        used = total - free
+        for item in [total, used, free]:
+            table_row.append(str("%.2f" % item + " GiB"))
+        return table_row
+
     def get_device_list_by_label(self):
+        """Find connected usb drives"""
         by_label_dir = "/dev/disk/by-label/"
         block_devices = os.listdir(by_label_dir)
         block_device_list = list()
@@ -43,6 +79,7 @@ class DeviceFinder:
         return block_device_list
 
     def get_device_list_by_path(self):
+        """Find corresponding device labels"""
         by_path_dir = "/dev/disk/by-path/"
         disk_list = os.listdir(by_path_dir)
         usb_set = set()
