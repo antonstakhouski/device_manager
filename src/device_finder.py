@@ -64,7 +64,7 @@ class DeviceFinder:
         # free space for ordinary users (excl. reserved)
         free = statvfs.f_frsize * statvfs.f_bavail / bytes_in_gigabytes
         used = total - free
-        for item in [total, used, free]:
+        for item in [total, free, used]:
             table_row.append(str("%.2f" % item + " GiB"))
         return table_row
 

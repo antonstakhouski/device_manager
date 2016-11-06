@@ -28,30 +28,30 @@ class DeviceManager(QWidget):
         self.connection_log = QTextBrowser()
 
         self.block_device_table_widget = QTableWidget()
-        self.block_device_table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.mtp_device_table_widget = QTableWidget()
-        self.mtp_device_table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.block_header = ["Device", "Label", "Mount point", "Total", "Free", "Used"]
+        self.mtp_header = ["Manufacturer", "Model", "Total", "Free", "Used", "Storage Description"]
+
+        self.table_view_setup(self.block_device_table_widget, self.block_header)
+        self.table_view_setup(self.mtp_device_table_widget, self.mtp_header)
 
         self.main_layout_init(block_device_table_label, connection_log_label, mtp_device_table_label)
         self.setWindowTitle("USB Manager")
 
-        self.block_header = ["Device", "Label", "Mount point", "Total", "Used", "Free"]
-        self.block_device_table_widget.setColumnCount(len(self.block_header))
-        self.block_device_table_widget.setHorizontalHeaderLabels(self.block_header)
-        self.block_device_table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
-
-        self.mtp_header = ["Manufacturer", "Model", "Total", "Free", "Used", "Storage Description"]
-        self.mtp_device_table_widget.setColumnCount(len(self.mtp_header))
-        self.mtp_device_table_widget.setHorizontalHeaderLabels(self.mtp_header)
-        self.mtp_device_table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
-
         self.usb_table = self.dev_finder.get_usb_table()
         self.update_table_widget(self.usb_table)
         self.reload_device_table()
-        self.unmount_button.pressed.connect(self.unmount_button_handler)
-        self.reload_mtp_list_button.pressed.connect(self.reload_mtp_handler)
 
-    def reload_mtp_handler(self):
+        self.unmount_button.pressed.connect(self.unmount_button_handler)
+        self.reload_mtp_list_button.pressed.connect(self.reload_mtp_list_button_handler)
+
+    def table_view_setup(self, table_widget, header):
+        table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table_widget.setColumnCount(len(header))
+        table_widget.setHorizontalHeaderLabels(header)
+        table_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+
+    def reload_mtp_list_button_handler(self):
         mtp_list = self.dev_finder.get_mtp_devices()
         self.mtp_device_table_widget.clear()
         self.mtp_device_table_widget.setHorizontalHeaderLabels(self.mtp_header)
