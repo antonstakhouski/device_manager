@@ -89,3 +89,33 @@ class DeviceFinder:
                 abs_path = os.path.abspath(by_path_dir + path)
                 usb_set.add(abs_path)
         return usb_set
+
+    def get_mtp_devices(self):
+        # os.system("mtp-detect > output")
+        output = open("output")
+        output_lines = output.readlines()
+        mtp_list = list()
+        first_storage_flag = False
+        device = list()
+        bytes_in_gigabytes = 1024 ** 3
+        total = 0
+        for line in output_lines:
+            if line.find("Manufacturer") != -1:
+                device.clear()
+                device.append(" ".join(line.split()[1:]))
+                first_storage_flag = False
+            if line.find("Model") != -1:
+                device.append(" ".join(line.split()[1:]))
+            if line.find("MaxCapacity") != -1:
+                total = float(line.split()[1]) / bytes_in_gigabytes
+                device.append("%.2f" % total + " G")
+            if line.find("FreeSpaceInBytes") != -1:
+                free = float(line.split()[1]) / bytes_in_gigabytes
+                device.append("%.2f" % free + " G")
+                device.append("%.2f" % (total - free) + " G")
+            if line.find("StorageDescription") != -1:
+                if not first_storage_flag:
+                    device.append(" ".join(line.split()[1:]))
+                    first_storage_flag = True
+                    mtp_list.append(device.copy())
+        return mtp_list
