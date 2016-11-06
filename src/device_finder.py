@@ -43,12 +43,12 @@ class DeviceFinder:
 
         """
         mounts = open("/proc/mounts")
-        mount_points = mounts.readlines()
+        mount_lines = mounts.readlines()
         table = usb_table
         i = 0
         for device in table:
-            for point in mount_points:
-                arguments = point.split(" ")
+            for line in mount_lines:
+                arguments = line.split(" ")
                 if arguments[0] == device[0]:
                     usb_table[i].append(arguments[1])
                     usb_table[i] = self.get_drive_stat(usb_table[i])
